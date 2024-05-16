@@ -1,0 +1,118 @@
+/*
+    01 - MIT044IP - Consulta Títulos a Pagar
+*/
+#include "tlpp-core.th"
+#include "totvs.ch"
+#include "topconn.ch"
+
+user function zConsTitAPag()
+    local aArea as array
+	local aTitulos as array
+
+    aArea := FWGetArea()
+
+	aTitulos := FillArrayTitulos(FwXFilial('SF1'), SF1->F1_DOC, SF1->F1_SERIE, SF1->F1_ESPECIE, SF1->F1_FORNECE, SF1->F1_LOJA)
+	if ! Empty(aTitulos)
+		FillGridTItulos(aTitulos)
+	else
+        FWAlertInfo("Não há títulos lançados para este documento", "Informação")
+	endif
+
+    FWRestArea(aArea)
+return
+
+static function FillArrayTitulos(cDocFilial as character, cDoc as character, cSerie as character, cTipo as character, cFornece as character, cLojaFor as character) as array
+	local aRet as array
+	local cQry as character
+	local cAlias as character
+
+	cQry := "select" + CRLF
+	cQry += "	iif(E2_BAIXA = '', 0, 1) as Quitado," + CRLF
+	cQry += "	E2_PARCELA as Parcela," + CRLF
+	cQry += "	E2_VENCREA as Vencimento," + CRLF
+	cQry += "	E2_VALOR as Valor_Original," + CRLF
+	cQry += "	SUM(isnull(E5_VALOR, 0.00)) as Valor_Pago," + CRLF
+	cQry += "	E2_BAIXA as Data_Pagamento" + CRLF
+	cQry += "from" + CRLF
+	cQry += "	" + RetSqlName('SE2') + CRLF
+	cQry += "	left outer join " + RetSqlName('SE5') + " on" + CRLF
+	cQry += "		E2_FILIAL = E5_FILIAL" + CRLF
+	cQry += "		and E2_PREFIXO = E5_PREFIXO" + CRLF
+	cQry += "		and E2_NUM = E5_NUMERO" + CRLF
+	cQry += "		and E2_PARCELA = E5_PARCELA" + CRLF
+	cQry += "		and E2_TIPO = E5_TIPO" + CRLF
+	cQry += "		and E2_FORNECE = E5_FORNECE" + CRLF
+	cQry += "		and E2_LOJA = E5_LOJA" + CRLF
+	cQry += "		and " + RetSqlName('SE5') + ".D_E_L_E_T_ = ' '" + CRLF
+	cQry += "where" + CRLF
+	cQry += "	E2_FILIAL = '" + cDocFilial + "'" + CRLF
+	cQry += "	AND E2_NUM = '" + cDoc + "'" + CRLF
+	cQry += "	AND E2_PREFIXO = '" + cSerie + "'" + CRLF
+	cQry += "	AND E2_TIPO = '" + cTipo + "'" + CRLF
+	cQry += "	AND E2_FORNECE = '" + cFornece + "'" + CRLF
+	cQry += "	AND E2_LOJA = '" + cLojaFor + "'" + CRLF
+	cQry += "	AND " + RetSqlName('SE2') + ".D_E_L_E_T_ = ' '" + CRLF
+	cQry += "group by" + CRLF
+	cQry += "	E2_PARCELA," + CRLF
+	cQry += "	E2_VENCREA," + CRLF
+	cQry += "	E2_VALOR," + CRLF
+	cQry += "	E2_BAIXA"
+
+    cAlias := GetNextAlias()
+    TCQuery cQry alias &(cAlias) new
+
+    if ! &(cAlias)->(Eof())
+		aRet := array(0)
+        while ! &(cAlias)->(Eof())
+            aadd(aRet, {&(cAlias)->(Quitado), &(cAlias)->(Parcela), SToD(&(cAlias)->(Vencimento)), &(cAlias)->(Valor_Original),;
+						&(cAlias)->(Valor_Pago), SToD(&(cAlias)->(Data_Pagamento))})
+            &(cAlias)->(DbSkip())
+        enddo
+    endif
+    &(cAlias)->(DbCloseArea())
+return aRet
+
+static function FillGridTItulos(aRows as array)
+	local oDlg as object
+	local oPanel as object
+	local oBrwTitulos as object	
+	local oBmpOk as object
+	local oBmpNo as object
+
+	oBmpOk := LoadBitmap(GetResources(), 'br_verde')
+	oBmpNo := LoadBitmap(GetResources(), 'br_vermelho')
+
+    oDlg := FWDialogModal():New()
+    oDlg:SetTitle("Situação dos títulos a pagar")
+	oDlg:SetBackGround(.T.)
+    oDlg:SetSize(118, 242)
+    oDlg:EnableFormBar(.T.)
+	oDlg:SetCloseButton(.T.)
+	oDlg:SetEscClose(.T.)
+    oDlg:CreateDialog()
+    oDlg:CreateFormBar()
+    oDlg:AddButton("OK", {|| oDlg:DeActivate()}, "OK", , .T., .F., .T., )
+
+	oPanel := oDlg:GetPanelMain()
+	oBrwTitulos := TCBrowse():New(1, 1, 240, 70,, {'', 'Parcela', 'Vencimento', 'Valor Original', 'Valor Pago', 'Data Pagamento'},;
+								  {10,30,50,40,40,50}, oPanel,,,,,{||},,,,,,,.F.,,.T.,,.F.,, .F., )
+	oBrwTitulos:SetArray(aRows)
+	oBrwTitulos:bLine := {||{;
+			iif(aRows[oBrwTitulos:nAt,01] == 1, oBmpOk, oBmpNo),;
+			aRows[oBrwTitulos:nAt,02],;
+			aRows[oBrwTitulos:nAt,03],;
+			Transform(aRows[oBrwTitulos:nAT,04], '@E $999,999,999.99'),;
+			Transform(aRows[oBrwTitulos:nAT,05], '@E $999,999,999.99'),;
+			aRows[oBrwTitulos:nAT,06];
+	} }
+	oBrwTitulos:lJustific := .T.
+    oDlg:Activate()
+	FreeObj(oDlg)
+return
+
+/*
+	Documento de entrada sem titulo
+	Numeros de nota igual para fornecedores <>
+	Num igual serie dif
+	
+*/

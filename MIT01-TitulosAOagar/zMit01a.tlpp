@@ -1,0 +1,12 @@
+/*
+    01 - MIT044IP - Consulta Títulos a Pagar
+*/
+user function zMit01a()
+    local aArea as array
+
+    aArea := FWGetArea()
+
+	aAdd(aRotina, {"# Consulta títulos a pagar", "u_zConsTitAPag()", 0, 2, 0, Nil})
+
+    FWRestArea(aArea)
+return
