@@ -1,0 +1,29 @@
+/*
+    02 - MIT044IP - Gatilhos
+*/
+user function zUpdDescProd()
+    local aArea as array
+    local nPosCodPrd as numeric
+    local nPosDescPrd as numeric
+    local nLinha as numeric
+    local cFilialPrd as character
+    local cCodPrd as character
+    local cNomePrd as character
+    
+    aArea := FWGetArea()
+
+    nLinha := ParamIXB[1]
+    nPosCodPrd := 2 //C7_PRODUTO GDFieldPos não funcionou e nem o GDFieldGet
+    nPosDescPrd := 3
+    cFilialPrd := FwXFilial('SB1')
+    cCodPrd := aCols[nLinha, nPosCodPrd]
+    cNomePrd := posicione('SB1', 1, cFilialPrd+cCodPrd, 'B1_DESC')
+    aCols[nLinha, nPosDescPrd] := cNomePrd
+    /*
+    RecLock("SD1",.F.)
+        replace D1_ZZDESCR with cNomePrd
+    MsUnlock()
+    */
+
+    FWRestArea(aArea)
+return

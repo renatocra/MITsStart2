@@ -1,0 +1,25 @@
+/*
+    02 - MIT044IP - Gatilhos
+*/
+user function M460FIM()
+    local aArea as array 
+    
+    aArea := FWGetArea()
+
+    if ExistBlock("zUpdNmCli()")
+        u_zUpdNmCli()
+    endif
+
+    /*
+    If ExistBlock("F183TXIR")
+        nTxAux    := ExecBlock( "F183TXIR", .F., .F., { nTaxaIrf } )
+
+        If ValType(nTxAux) == "N"
+            nTaxaIrf := If(nTxAux >= 0 , nTxAux, nTaxaIrf )
+            nTxAux    := 0
+        EndIf
+    EndIf
+    */
+
+	FWRestArea(aArea)
+return

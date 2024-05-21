@@ -1,0 +1,15 @@
+/*
+    02 - MIT044IP - Gatilhos
+*/
+user function zTRCODCL()
+    local aArea := FWGetArea()
+    local nRet := ""
+
+    if M->C5_TIPO != "B" .and. M->C5_TIPO != "D"
+        nRet := posicione('SA1',1,FwXFilial('SA1')+M->C5_CLIENTE+M->C5_LOJACLI,'A1_NOME')
+    else
+        nRet := posicione('SA2',1,FwXFilial('SA2')+M->C5_CLIENTE+M->C5_LOJACLI,'A2_NOME')
+    endif
+
+    FWRestArea(aArea)
+return nRet

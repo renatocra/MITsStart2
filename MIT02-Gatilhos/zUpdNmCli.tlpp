@@ -1,0 +1,37 @@
+/*
+    02 - MIT044IP - Gatilhos
+*/
+#include "tlpp-core.th"
+#include "totvs.ch"
+#include "topconn.ch"
+
+user function zUpdNmCli()
+	local cQry as character
+	local cAlias as character
+    local cNmCli, cDoc, cSerie as character
+
+    cDoc := SF2->F2_DOC
+    cSerie := SF2->F2_SERIE
+
+    //Poderia ter pego da A1 pelo NMCLI?
+
+    cQry := "select" + CRLF
+    cQry += "	C5_ZZNMCLI" + CRLF
+    cQry += "from" + CRLF
+    cQry += "	" + RetSqlName('SC5') + CRLF
+    cQry += "where" + CRLF
+    cQry += "	C5_FILIAL = '" + FwXFilial('SC5') + "'" + CRLF
+    cQry += "	and C5_NOTA = '" + cDoc + "'" + CRLF
+    cQry += "	and C5_SERIE = '" + cSerie + "'"
+
+    cAlias := GetNextAlias()
+    TCQuery cQry alias &(cAlias) new
+
+    if ! &(cAlias)->(Eof())
+		cNmCli := &(cAlias)->(C5_ZZNMCLI)
+        RecLock("SF2",.F.)
+            replace F2_ZZNMCLI with cNmCli
+        MsUnlock()
+    endif
+    &(cAlias)->(DbCloseArea())
+return

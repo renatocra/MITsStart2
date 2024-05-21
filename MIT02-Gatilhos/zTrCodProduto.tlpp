@@ -1,0 +1,11 @@
+/*
+    02 - MIT044IP - Gatilhos
+*/
+user function zTrCodPr()
+    local aArea := FWGetArea()
+    local nRet := ""
+
+    nRet := posicione('SB1', 1, FwXFilial('SB1')+M->D1_COD, 'B1_DESC')
+
+    FWRestArea(aArea)
+return nRet
