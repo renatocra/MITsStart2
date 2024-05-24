@@ -1,0 +1,41 @@
+/*
+    MIT03-Formas de Pagamento a Pagar
+*/
+#include 'protheus.ch'
+
+user function zCadFormaPgto()
+    local aArea as array
+    local cAlias  := 'Z05'
+    local cTitulo := 'Cadastro de formas de pagamento'
+    local cVldDel := 'u_zCadFormaPgtoDel()'
+    local cVldUpd := 'u_zCadFormaPgtoUpd()'
+
+    aArea := FWGetArea()
+
+    DbSelectArea(cAlias)
+    DbSetOrder(1)
+    AxCadastro(cAlias, cTitulo, .t., .t.)
+    Z05->(DbCloseArea())
+    FWRestarea(aArea)
+return
+
+/*
+user function z0419VldDel()
+    local lRet as logical
+  
+    FwAlertWarning("Não é permitida a exclusão de itens")
+    lRet := .F.
+return lRet
+
+user function z0419VldUpd()
+    local cMsg := ''
+    local lRet := .T.
+
+    lRet := .T.
+
+    if !INCLUI
+        cMsg := 'Confirma a alteração?'
+        lRet := MsgYesNo(cMsg)
+    endif
+return lRet
+*/
